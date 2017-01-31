@@ -13,11 +13,11 @@ start() ->
  
 next(Neighbours, MCount) ->
   receive 
-    {hello} ->
+    {hello, Dist} ->
       if MCount == 0 ->
-        io:format("Message is ~p~n for peer ~p~n", [hello, self()]),
+        io:format("Message is ~p~n for peer ~p~n, Dist: ~p~n", [hello, self(), Dist]),
         timer:sleep(1000),
-        [Neighbour ! {hello} || Neighbour <- Neighbours];
+        [Neighbour ! {hello, Dist+1} || Neighbour <- Neighbours];
         true -> ok
       end
   end,
