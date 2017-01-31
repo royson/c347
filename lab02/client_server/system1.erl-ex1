@@ -1,0 +1,28 @@
+
+%%% distributed algorithms, n.dulay, 4 jan 17
+%%% simple client-server, v1
+
+%%% run all processes on one node
+ 
+-module(system1).
+-export([start/1]).
+
+start([N|_]) ->
+  {A, _} = string:to_integer(atom_to_list(N)),
+  L = lists:seq(1,A),
+  S  = spawn(server, start, []),
+  [f(E,S) || E <- L].
+%  start(A, S).
+
+f(_,S) ->
+  C = spawn(client, start, []),
+  C ! {bind, S}.
+
+%start(0, S) -> S;
+
+%start(N, S) ->  
+%  C  = spawn(client, start, []),
+%  
+%  C  ! {bind, S},
+%  start(N-1, S).
+
