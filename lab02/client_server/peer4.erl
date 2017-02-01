@@ -18,13 +18,31 @@ next(Neighbours, MCount, Parent, Children) ->
 %        io:format("Message is ~p for peer ~p, Dist: ~p~n", [hello, self(), Dist]),
         timer:sleep(1000),
         [Neighbour ! {hello, Dist+1, self()} || Neighbour <- Neighbours, Neighbour /= Source],
-	Source ! {children},
-        io:format("Peer ~p, Parent ~p, Children = ~p~n", [self(), Source, Children]),
-        next(Neighbours, MCount+1, Source, Children);
-        true -> io:format("Peer ~p, Parent ~p, Children = ~p~n", [self(), Parent, Children]),
-        next(Neighbours, MCount+1, Parent, Children)	
+	if Source /= null ->
+		Source ! {children};
+		true -> ok
+	end,
+	F = 1;
+	true ->
+	F = 2
       end;
     {children} ->
-	next(Neighbours, MCount, Parent, Children+1)
+	F = 3,
+	%dummy value%
+	Source = Parent
+  end,
+	%F = 1 -> (first hello packet received)
+	%F = 2 -> (more than 1 hello packet received)
+	%F = 3 -> (children packet received)
+  if 
+	F == 1 -> 
+		io:format("Peer ~p Parent ~p Children ~p~n", [self(), Source, Children]), 
+        	next(Neighbours, MCount+1, Source, Children);
+        F == 2 -> 
+		next(Neighbours, MCount+1, Parent, Children);
+	F == 3 ->
+		io:format("Peer ~p Parent ~p Children ~p~n", [self(), Parent, Children+1]), 
+		next(Neighbours, MCount, Parent, Children+1);
+	true -> ok
   end.
         
