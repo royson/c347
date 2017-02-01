@@ -38,7 +38,7 @@ L_ERL     = erl -noshell -pa ebin -setcookie pass
 L_ERLNODE = node
 
 run1:	all
-	$(L_ERL) -s $(L_SYSTEM) start 10
+	$(L_ERL) -s $(L3_SYSTEM) start 10
 
 # to run manually, run make node1 and make node2 in separate windows
 # then make man2, remove manually

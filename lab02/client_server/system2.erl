@@ -24,7 +24,7 @@ start([N|_]) ->
   neighbours(Peers, 10, [8, 9]),
 
   FirstPeer = lists:nth(5,Peers),
-  FirstPeer ! {hello, 0, null}.
+  FirstPeer ! {hello, 0}.
 
 neighbours(Peers, X, Neighbours) ->
   NeighboursPID = [ lists:nth(Neighbour,Peers) || Neighbour <- Neighbours ],

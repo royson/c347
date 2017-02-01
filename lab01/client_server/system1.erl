@@ -12,7 +12,7 @@ start([N|_]) ->
   L = lists:seq(1,A),
   [H|T] = [spawn(peer1, start, []) || _ <- L],
   [f(Q,[H|T]) || Q <- [H|T]],
-  H ! {msg}.
+  H ! {hello}.
   
 f(Q,LP) ->
   Neighbours = [X || X <- LP, Q /= X ],
