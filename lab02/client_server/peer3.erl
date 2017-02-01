@@ -8,18 +8,23 @@
 start() ->
   receive
     {bind, Neighbours} ->
-    next(Neighbours, 0)
+    next(Neighbours, 0, null)
   end.
  
-next(Neighbours, MCount) ->
+next(Neighbours, MCount, Parent) ->
   receive 
     {hello, Dist, Source} ->
       if MCount == 0 ->
-        io:format("Message is ~p~n for peer ~p~n, Dist: ~p~n", [hello, self(), Dist]),
+%        io:format("Message is ~p for peer ~p, Dist: ~p~n", [hello, self(), Dist]),
         timer:sleep(1000),
         [Neighbour ! {hello, Dist+1, self()} || Neighbour <- Neighbours, Neighbour /= Source];
         true -> ok
       end
   end,
-  io:format("Peer ~p Parent ~p  Messages seen = ~p~n", [self(), Source,  MCount]),
-  next(Neighbours, MCount+1).
+  if MCount == 0 ->
+  	io:format("Peer ~p, Parent ~p, Messages seen = ~p~n", [self(), Source, MCount+1]),
+  	next(Neighbours, MCount+1, Source);
+  	true -> io:format("Peer ~p, Parent ~p, Messages seen = ~p~n", [self(), Parent, MCount+1]),
+  	next(Neighbours, MCount+1, Parent)
+  end.
+        

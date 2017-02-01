@@ -4,7 +4,7 @@
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system1 system2 system3 client server peer1
+MODULES  = system1 system2 system3 client server peer1 peer3
 HOSTS    = 3
 HOSTSm1  = 2
 
@@ -31,13 +31,14 @@ clean:
 
 SYSTEM    = system1
 L_SYSTEM  = system2
+L3_SYSTEM = system3
 
 L_HOST    = localhost.localdomain
 L_ERL     = erl -noshell -pa ebin -setcookie pass
 L_ERLNODE = node
 
 run1:	all
-	$(L_ERL) -s $(SYSTEM) start 10
+	$(L_ERL) -s $(L_SYSTEM) start 10
 
 # to run manually, run make node1 and make node2 in separate windows
 # then make man2, remove manually
@@ -48,7 +49,7 @@ node2:	all
 	$(L_ERL) -name $(L_ERLNODE)2@$(L_HOST)
 
 man2:	all
-	$(L_ERL) -name $(L_ERLNODE)3@$(L_HOST) -s $(L_SYSTEM) start 
+	$(L_ERL) -name $(L_ERLNODE)3@$(L_HOST) -s $(L_SYSTEM) start 10 
 
 # to run and clean up automatically
 run2:	all
