@@ -28,4 +28,11 @@ start([N|_]) ->
 
 neighbours(Peers, X, Neighbours) ->
   NeighboursPID = [ lists:nth(Neighbour,Peers) || Neighbour <- Neighbours ],
-  lists:nth(X, Peers) ! {bind, NeighboursPID}.
+  %add PID of system4 into neighbour list of root
+ 
+  if X == 5 ->
+	NeighboursPIDAndSource = lists:append(NeighboursPID, [self()]),
+	lists:nth(X, Peers) ! {bind, NeighboursPIDAndSource};
+        true ->
+  	lists:nth(X, Peers) ! {bind, NeighboursPID}
+  end.
