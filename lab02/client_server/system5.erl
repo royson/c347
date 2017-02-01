@@ -27,10 +27,17 @@ start([N|_]) ->
   FirstPeer ! {hello, 0, self()},
 
   receive
-    {Result} ->
-	io:format("Result: ~p~n", [Result])
+	{value, Value} ->
+		io:format("Total Value: ~p~n",[Value])
   end.
 
 neighbours(Peers, X, Neighbours) ->
   NeighboursPID = [ lists:nth(Neighbour,Peers) || Neighbour <- Neighbours ],
-  lists:nth(X, Peers) ! {bind, NeighboursPID}.
+  %add PID of system4 into neighbour list of root
+ 
+  if X == 5 ->
+	NeighboursPIDAndSource = lists:append(NeighboursPID, [self()]),
+	lists:nth(X, Peers) ! {bind, NeighboursPIDAndSource};
+        true ->
+  	lists:nth(X, Peers) ! {bind, NeighboursPID}
+  end.
