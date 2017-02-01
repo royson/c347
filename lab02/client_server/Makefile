@@ -4,7 +4,7 @@
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system1 system2 system3 system4 client server peer1 peer3 peer4
+MODULES  = system1 system2 system3 system4 system5 client server peer1 peer3 peer4 peer5
 HOSTS    = 3
 HOSTSm1  = 2
 
@@ -33,6 +33,7 @@ SYSTEM    = system1
 L_SYSTEM  = system2
 L3_SYSTEM = system3
 L4_SYSTEM = system4
+L5_SYSTEM = system5
 
 L_HOST    = localhost.localdomain
 L_ERL     = erl -noshell -pa ebin -setcookie pass
