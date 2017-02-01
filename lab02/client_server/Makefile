@@ -75,5 +75,5 @@ run3:
 	done
 
 	docker exec -it $(D_HOSTNAME)$(HOSTS) \
-	  $(D_ERL) -name $(D_ERLNODE)@$(D_SUBNET).3 -s $(D_SYSTEM) start 
+	  $(D_ERL) -name $(D_ERLNODE)@$(D_SUBNET).3 -s $(D_SYSTEM) start 10 
 
