@@ -9,4 +9,4 @@ start([N|_]) ->
 	Processes = [spawn(process, start, [Num]) || Num <- lists:seq(1,A)],
 	
 	[P ! {bind, Processes} || P <- Processes],
-	[Process ! {task1, start, 1000, 3000} || Process <- Processes].	
+	[Process ! {task1, start, 0, 3000} || Process <- Processes].	

@@ -8,42 +8,75 @@ start(Num) ->
 		{bind, Processes} ->
 		%Maps - #{ProcessID => {Send,Receive}
 		%Map = #{ P => {0,0} || P <- Processes },
-		M = maps:new(),
-		Map = [ M#{P => {0,0}} || P <- Processes ],
+		Map = initializeMap(Processes, maps:new()),
 		
 		%Debugging
-		D = maps:to_list(Map),
-		io:format("~p", [string:join(D, " ")]),
+		%io:format("~p ~p~n",[self(), Map]),
 
-		next(Num, Processes, Map)
+		next(Num, Processes, 0,  Map, 0, 0)
 	end.
 			
-next(Num, Processes, Map) ->
+next(Num, Processes, MCount, Map, Broadcast, Max) ->
 	receive
 		{task1, start, MaxM, T} ->
 
 		%more efficient than timer:send_after
 		erlang:send_after(T, self(), timeout),
 		
-		[ send(Processes, Map) || _ <- lists:seq(1,MaxM) ];
+		%enable broadcast
+		next(Num, Processes, MCount, Map, 1, MaxM);
 		
+		%NMap = send(Processes, Map, MCount, MaxM);
+
 		{Pid, msg} ->
 			{S, R} = maps:get(Pid, Map),
-			maps:update(Pid, {S, R+1}, Map);
-
+			NMap = maps:update(Pid, {S, R+1}, Map),
+			next(Num, Processes, MCount, NMap, Broadcast, Max);
+	
 		timeout ->
-			Values = maps:value(Map),
-			io:format("~p: ~p~n", [Num, string:join(Values, " ")]),
-			erlang:halt()
-	end,
-	next(Num, Processes, Map).			
+			Values = maps:values(Map),
+			SValues = [ toString(V) || V <- Values ],
+			
+			io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
+		
+			NMap = initializeMap(Processes, maps:new()),
+			next(Num, Processes, 0, NMap, 0, 0)
 
-send(Processes, Map) ->
-	[ updateSend(P, Map) || P <- Processes ].
+	after 0 ->
+		if Broadcast == 1 ->
+			if Max == 0 -> 
+				%keep broadcast
+				NMap = updateMap(Processes, Map),
+				next(Num, Processes, MCount+1, NMap, Broadcast, Max);
+			  MCount < Max ->
+				%send a broadcast 
+				NMap = updateMap(Processes, Map),
+				next(Num, Processes, MCount+1, NMap, Broadcast, Max);
+			  
+			true -> ok
+			end;
+		true -> ok
+		end,
+		next(Num, Processes, MCount, Map, Broadcast, Max)
+	end.
 
-updateSend(P, Map) ->
+toString(Term) ->
+	lists:flatten(io_lib:format("~p",[Term])).
+
+%%% Map Functions %%%
+
+initializeMap([], Map) ->
+	Map;
+initializeMap([P|O], Map) ->
+	NMap = maps:put(P, {0,0}, Map),
+	initializeMap(O, NMap).
+
+updateMap([], Map) ->
+	Map;
+updateMap([P|O], Map) ->
 	P ! {self(), msg},
 	{S, R} = maps:get(P, Map),
-	maps:update(P, {S+1, R}, Map).
+	NMap = maps:update(P, {S+1, R}, Map),
+	updateMap(O, NMap).
 
 
