@@ -7,57 +7,51 @@ start(Num) ->
 	receive
 		{bind, Processes} ->
 		%Maps - #{ProcessID => {Send,Receive}
-		%Map = #{ P => {0,0} || P <- Processes },
 		Map = initializeMap(Processes, maps:new()),
-		
-		%Debugging
-		%io:format("~p ~p~n",[self(), Map]),
 
-		next(Num, Processes, 0,  Map, 0, 0)
+		next(Num,  Map)
 	end.
-			
-next(Num, Processes, MCount, Map, Broadcast, Max) ->
+
+next(Num, Map) ->
 	receive
 		{task1, start, MaxM, T} ->
-
-		%more efficient than timer:send_after
 		erlang:send_after(T, self(), timeout),
-		
-		%enable broadcast
-		next(Num, Processes, MCount, Map, 1, MaxM);
-		
-		%NMap = send(Processes, Map, MCount, MaxM);
+		init(Num, Map, MaxM)
+	end.
 
+init(Num, Map, Max) ->
+	receive
 		{Pid, msg} ->
 			{S, R} = maps:get(Pid, Map),
 			NMap = maps:update(Pid, {S, R+1}, Map),
-			next(Num, Processes, MCount, NMap, Broadcast, Max);
-	
+			init(Num, NMap, Max);
 		timeout ->
-			Values = maps:values(Map),
-			SValues = [ toString(V) || V <- Values ],
-			
-			io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
-		
-			NMap = initializeMap(Processes, maps:new()),
-			next(Num, Processes, 0, NMap, 0, 0)
-
+			timeout(Num, Map)
 	after 0 ->
-		if Broadcast == 1 ->
-			if Max == 0 -> 
-				%keep broadcast
-				NMap = updateMap(Processes, Map),
-				next(Num, Processes, MCount+1, NMap, Broadcast, Max);
-			  MCount < Max ->
-				%send a broadcast 
-				NMap = updateMap(Processes, Map),
-				next(Num, Processes, MCount+1, NMap, Broadcast, Max);
-			  
-			true -> ok
-			end;
-		true -> ok
-		end,
-		next(Num, Processes, MCount, Map, Broadcast, Max)
+		broadcast(Num, Map, Max)
+	end.
+
+timeout(Num, Map) ->
+	Values = maps:values(Map),
+	SValues = [ toString(V) || V <- Values ],
+	
+	io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
+		
+	Pid = [ P || P <- maps:keys(Map)],
+	NMap = initializeMap(Pid, maps:new()),
+	next(Num, NMap).
+
+broadcast(Num, Map, Max) ->
+	Pid = [ P || P <- maps:keys(Map)],
+	{_,{S,_}} = maps:find(self(),Map),
+	if Max == 0 -> 
+		NMap = updateMap(Pid, Map),
+		init(Num, NMap, Max);
+	   S < Max ->
+		NMap = updateMap(Pid, Map),
+		init(Num, NMap, Max);
+	true -> 
+		init(Num, Map, Max)
 	end.
 
 toString(Term) ->
