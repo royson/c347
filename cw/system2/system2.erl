@@ -15,13 +15,12 @@ start([N|_]) ->
 init_pl(C, PLS, T) ->
 	receive
 		{p2p, Process, PL} ->
-		if C == T ->
+		PLS2 = lists:append([{Process,PL}], PLS),
+		if C+1 == T ->
 			%send each PL a list of {process, PL}
-			[ PPL ! {bind, PLS} || {_,PPL} <- PLS ],
-			[ PPL ! {pl_deliver, task1, start, 1000, 3000} || {_,PPL} <- PLS];	
-			
+			[ PPL ! {bind, PLS2} || {_,PPL} <- PLS2 ],
+			[ PPL ! {pl_deliver, task1, start, 0, 1000} || {_,PPL} <- PLS2];	
 		true -> 
-			PLS2 = lists:append([{Process,PL}], PLS),
 			init_pl(C+1, PLS2, T)
 		end
 	end.

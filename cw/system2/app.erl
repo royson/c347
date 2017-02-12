@@ -23,6 +23,7 @@ init(Num, Map, Max, PL, ProcessID) ->
 	receive
 		{pl_deliver, Pid, msg} ->
 			{S, R} = maps:get(Pid, Map),
+		%	io:format("In Process: ~p , {PID,R} ~p~n", [ProcessID,{Pid, R+1}]),
 			NMap = maps:update(Pid, {S, R+1}, Map),
 			init(Num, NMap, Max, PL, ProcessID);
 		timeout ->
@@ -45,9 +46,11 @@ broadcast(Num, Map, Max, PL, ProcessID) ->
 	Pid = [ P || P <- maps:keys(Map)],
 	{_,{S,_}} = maps:find(ProcessID,Map),
 	if Max == 0 -> 
+		PL ! {pl_send, ProcessID, msg},
 		NMap = updateMap(Pid, Map, PL, ProcessID),
 		init(Num, NMap, Max, PL, ProcessID);
 	   S < Max ->
+		PL ! {pl_send, ProcessID, msg},
 		NMap = updateMap(Pid, Map, PL, ProcessID),
 		init(Num, NMap, Max, PL, ProcessID);
 	true -> 
@@ -68,7 +71,6 @@ initializeMap([P|O], Map) ->
 updateMap([], Map, _, _) ->
 	Map;
 updateMap([P|O], Map, PL, ProcessID) ->
-	PL ! {pl_send, ProcessID, msg},
 	{S, R} = maps:get(P, Map),
 	NMap = maps:update(P, {S+1, R}, Map),
 	updateMap(O, NMap, PL, ProcessID).

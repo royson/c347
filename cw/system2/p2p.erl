@@ -15,10 +15,11 @@ next(AppID, Map) ->
 		{pl_deliver, task1, start, Max_messages, Timeout} ->
 			AppID ! {pl_deliver, task1, start, Max_messages, Timeout};
 		{pl_send, ProcessID, msg} ->
-			[ PL ! {pl_deliver, ProcessID, msg} || PL <- maps:values(Map)];
-		{pl_deliver, Pid, msg} ->
+			[ PL ! {pl_transmit, ProcessID, msg} || PL <- maps:values(Map)];
+		{pl_transmit, Pid, msg} ->
 			AppID ! {pl_deliver, Pid, msg}
-	end.
+	end,
+	next(AppID, Map).
 
 initializeMap([], Map) ->
 	Map;
