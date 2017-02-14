@@ -1,5 +1,5 @@
-SYSTEM = system2
-L_ERL = erl -noshell
+SYSTEM = system3
+L_ERL = erl -noshell 
 
 run1: 
 	erlc *.erl	

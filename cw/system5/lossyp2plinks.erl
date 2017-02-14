@@ -1,26 +1,31 @@
 %%% Chu Lee (cyl113) and Royson Lee (dsl114)
 
--module(p2p).
--export([start/1]).
+-module(lossyp2plinks).
+-export([start/2]).
 
-start(AppID) ->
+start(Beb, R) ->
 	receive
 		{bind, PLS} ->
 		Map = initializeMap(PLS, maps:new()),
-		next(AppID, Map)
+		next(Beb, Map, R)
 	end.
 
-next(AppID, Map) ->
+next(Beb, Map, R) ->
 	receive
 		{pl_deliver, task1, start, Max_messages, Timeout} ->
-			AppID ! {pl_deliver, task1, start, Max_messages, Timeout};
+			Beb ! {pl_deliver, task1, start, Max_messages, Timeout};
 		{pl_send, Q, Sender, msg} ->
-			{_,ProcessPL} = maps:find(Q, Map),
-			ProcessPL ! {pl_transmit, Sender, msg};
+			No = rand:uniform(100),
+ 
+			if R >= No -> 
+				{_,SenderPl} = maps:find(Q, Map),
+				SenderPl ! {pl_transmit, Sender, msg};
+			true -> ok
+			end;
 		{pl_transmit, Pid, msg} ->
-			AppID ! {pl_deliver, Pid, msg}
+			Beb ! {pl_deliver, Pid, msg}
 	end,
-	next(AppID, Map).
+	next(Beb, Map, R).
 
 initializeMap([], Map) ->
 	Map;

@@ -5,34 +5,34 @@
 
 start(Num) ->
 	receive
-		{bind, Processes, PL, ProcessID} ->
+		{bind, Processes, Beb, ProcessID} ->
 		%Maps - #{ProcessID => {Send,Receive}
 		Map = initializeMap(Processes, maps:new()),
 
-		next(Num, Map, PL, ProcessID)
+		next(Num, Map, Beb, ProcessID)
 	end.
 
-next(Num, Map, PL, ProcessID) ->
+next(Num, Map, Beb, ProcessID) ->
 	receive
-		{pl_deliver, task1, start, MaxM, T} ->
+		{beb_deliver, task1, start, MaxM, T} ->
 		erlang:send_after(T, self(), timeout),
-		init(Num, Map, MaxM, PL, ProcessID)
+		init(Num, Map, MaxM, Beb, ProcessID)
 	end.
 
-init(Num, Map, Max, PL, ProcessID) ->
+init(Num, Map, Max, Beb, ProcessID) ->
 	receive
-		{pl_deliver, Pid, msg} ->
+		{beb_deliver, Pid, msg} ->
 			{S, R} = maps:get(Pid, Map),
 		%	io:format("In Process: ~p , {PID,R} ~p~n", [ProcessID,{Pid, R+1}]),
 			NMap = maps:update(Pid, {S, R+1}, Map),
-			init(Num, NMap, Max, PL, ProcessID);
+			init(Num, NMap, Max, Beb, ProcessID);
 		timeout ->
-			timeout(Num, Map, PL, ProcessID)
+			timeout(Num, Map, Beb, ProcessID)
 	after 0 ->
-		broadcast(Num, Map, Max, PL, ProcessID)
+		broadcast(Num, Map, Max, Beb, ProcessID)
 	end.
 
-timeout(Num, Map, PL, ProcessID) ->
+timeout(Num, Map, Beb, ProcessID) ->
 	Values = maps:values(Map),
 	SValues = [ toString(V) || V <- Values ],
 	
@@ -40,19 +40,21 @@ timeout(Num, Map, PL, ProcessID) ->
 		
 	Pid = [ P || P <- maps:keys(Map)],
 	NMap = initializeMap(Pid, maps:new()),
-	next(Num, NMap, PL, ProcessID).
+	next(Num, NMap, Beb, ProcessID).
 
-broadcast(Num, Map, Max, PL, ProcessID) ->
+broadcast(Num, Map, Max, Beb, ProcessID) ->
 	Pid = [ P || P <- maps:keys(Map)],
 	{_,{S,_}} = maps:find(ProcessID,Map),
 	if Max == 0 -> 
-		NMap = updateMap(Pid, Map, PL, ProcessID),
-		init(Num, NMap, Max, PL, ProcessID);
+		Beb ! {beb_broadcast, ProcessID, msg},
+		NMap = updateMap(Pid, Map, Beb, ProcessID),
+		init(Num, NMap, Max, Beb, ProcessID);
 	   S < Max ->
-		NMap = updateMap(Pid, Map, PL, ProcessID),
-		init(Num, NMap, Max, PL, ProcessID);
+		Beb ! {beb_broadcast, ProcessID, msg},
+		NMap = updateMap(Pid, Map, Beb, ProcessID),
+		init(Num, NMap, Max, Beb, ProcessID);
 	true -> 
-		init(Num, Map, Max, PL, ProcessID)
+		init(Num, Map, Max, Beb, ProcessID)
 	end.
 
 toString(Term) ->
@@ -68,10 +70,9 @@ initializeMap([P|O], Map) ->
 
 updateMap([], Map, _, _) ->
 	Map;
-updateMap([P|O], Map, PL, ProcessID) ->
-	PL ! {pl_send, P, ProcessID, msg},
+updateMap([P|O], Map, Beb, ProcessID) ->
 	{S, R} = maps:get(P, Map),
 	NMap = maps:update(P, {S+1, R}, Map),
-	updateMap(O, NMap, PL, ProcessID).
+	updateMap(O, NMap, Beb, ProcessID).
 
 

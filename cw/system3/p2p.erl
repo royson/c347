@@ -3,24 +3,24 @@
 -module(p2p).
 -export([start/1]).
 
-start(AppID) ->
+start(Beb) ->
 	receive
 		{bind, PLS} ->
 		Map = initializeMap(PLS, maps:new()),
-		next(AppID, Map)
+		next(Beb, Map)
 	end.
 
-next(AppID, Map) ->
+next(Beb, Map) ->
 	receive
 		{pl_deliver, task1, start, Max_messages, Timeout} ->
-			AppID ! {pl_deliver, task1, start, Max_messages, Timeout};
+			Beb ! {pl_deliver, task1, start, Max_messages, Timeout};
 		{pl_send, Q, Sender, msg} ->
-			{_,ProcessPL} = maps:find(Q, Map),
-			ProcessPL ! {pl_transmit, Sender, msg};
+			{_,SenderPl} = maps:find(Q, Map),
+			SenderPl ! {pl_transmit, Sender, msg};
 		{pl_transmit, Pid, msg} ->
-			AppID ! {pl_deliver, Pid, msg}
+			Beb ! {pl_deliver, Pid, msg}
 	end,
-	next(AppID, Map).
+	next(Beb, Map).
 
 initializeMap([], Map) ->
 	Map;
