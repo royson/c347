@@ -38,12 +38,12 @@ timeout(Num, Map, Beb, ProcessID) ->
 	
 	io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
 		
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map),
 	NMap = initializeMap(Pid, maps:new()),
 	next(Num, NMap, Beb, ProcessID).
 
 broadcast(Num, Map, Max, Beb, ProcessID) ->
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map),
 	{_,{S,_}} = maps:find(ProcessID,Map),
 	if Max == 0 -> 
 		Beb ! {beb_broadcast, ProcessID, msg},

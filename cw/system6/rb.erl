@@ -1,4 +1,5 @@
 %%% Chu Lee (cyl113) and Royson Lee (dsl114)
+
 -module(rb).
 -export([start/0]).
 

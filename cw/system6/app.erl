@@ -28,7 +28,6 @@ init(Num, Map, Max, Rb, ProcessID, Seq) ->
 	receive
 		{rb_deliver, Pid, _} ->
 			{S, R} = maps:get(Pid, Map),
-		%	io:format("In Process: ~p , {PID,R} ~p~n", [ProcessID,{Pid, R+1}]),
 			NMap = maps:update(Pid, {S, R+1}, Map),
 			init(Num, NMap, Max, Rb, ProcessID, Seq);
 		timeout ->
@@ -43,29 +42,21 @@ timeout(Num, Map, Rb, ProcessID, Seq) ->
 	
 	io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
 		
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map),
 	NMap = initializeMap(Pid, maps:new()),
 	next(Num, NMap, Rb, ProcessID, Seq).
 
 broadcast(Num, Map, Max, Rb, ProcessID, Seq) ->
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map),
 	{_,{S,_}} = maps:find(ProcessID,Map),
 	if Max == 0 ->
 		Rb ! {rb_broadcast, ProcessID, {ProcessID, Seq}},
 		NMap = updateMap(Pid, Map, Rb, ProcessID),
 
-	%	if Num == 2 ->
-	%		io:format("Rb.~p~n",[Rb]);
-	%	true -> ok
-	%	end, 
 		init(Num, NMap, Max, Rb, ProcessID, Seq+1);
 	   S < Max ->
 		Rb ! {rb_broadcast, ProcessID, {ProcessID, Seq}},
 		NMap = updateMap(Pid, Map, Rb, ProcessID),
-		%if Num == 3 ->
-		%	io:format("BROADCASTING.~n",[]);
-		%true -> ok
-		%end, 
 		init(Num, NMap, Max, Rb, ProcessID, Seq+1);
 	true -> 
 		init(Num, Map, Max, Rb, ProcessID, Seq)

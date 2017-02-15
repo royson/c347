@@ -37,12 +37,12 @@ timeout(Num, Map) ->
 	
 	io:format("~p: ~s~n", [Num, string:join(SValues, " ")]),
 		
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map],
 	NMap = initializeMap(Pid, maps:new()),
 	next(Num, NMap).
 
 broadcast(Num, Map, Max) ->
-	Pid = [ P || P <- maps:keys(Map)],
+	Pid = maps:keys(Map],
 	{_,{S,_}} = maps:find(self(),Map),
 	if Max == 0 -> 
 		NMap = updateMap(Pid, Map),
