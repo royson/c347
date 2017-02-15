@@ -19,7 +19,7 @@ init_pl(C, PLS, T) ->
 		if C+1 == T ->
 			%send each PL a list of {process, PL}
 			[ PPL ! {bind, PLS2} || {_,PPL} <- PLS2 ],
-			[ PPL ! {pl_deliver, task1, start, 0, 1000} || {_,PPL} <- PLS2];	
+			[ PPL ! {pl_deliver, task1, start, 20000, 2000} || {_,PPL} <- PLS2];	
 		true -> 
 			init_pl(C+1, PLS2, T)
 		end
