@@ -18,13 +18,11 @@ next(Beb, Map, R) ->
 			No = rand:uniform(100),
  
 			if R >= No -> 
-				io:format("SSS",[]),
 				{_,SenderPl} = maps:find(Q, Map),
 				SenderPl ! {pl_transmit, Sender, M};
 			true -> ok
 			end;
 		{pl_transmit, Pid, M} ->
-			io:format("Y",[]),
 			Beb ! {pl_deliver, Pid, M}
 	end,
 	next(Beb, Map, R).
