@@ -1,10 +1,10 @@
-%%% Chu Lee (cyl113) an d Royson Lee (dsl114)
+%%% Chu Lee (cyl113) and Royson Lee (dsl114)
 
 -module(acceptor).
 -export([start/0]).
 
 start() ->
-  next(0, []).
+  next(-1, []).
 
 next(Ballot_num, Accepted) ->
   receive

@@ -1,13 +1,13 @@
-%%% Chu Lee (cyl113) an d Royson Lee (dsl114)
+%%% Chu Lee (cyl113) and Royson Lee (dsl114)
 
 -module(scout).
 -export([start/3]).
 
 start(Leader, Acceptors, B) ->
+  [ A ! {p1a, self(), B} || A <- Acceptors],
   next(Leader, Acceptors, B, Acceptors, []).
 
 next(Leader, Acceptors, B, WaitFor, PValues) ->
-  [ A ! {p1a, self(), B} || A <- Acceptors],
   receive
     {p1b, Acc, Bacc, R} ->
       if B == Bacc ->

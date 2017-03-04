@@ -1,13 +1,13 @@
-%%% Chu Lee (cyl113) an d Royson Lee (dsl114)
+%%% Chu Lee (cyl113) and Royson Lee (dsl114)
 
 -module(commander).
 -export([start/4]).
 
 start(Leader, Acceptors, Replicas, {B, S ,C}) ->
+  [ A ! {p2a, self(), {B, S, C}} || A <- Acceptors],
   next(Leader, Acceptors, Replicas, Acceptors, {B, S, C}).
 
 next(Leader, Acceptors, Replicas, WaitFor, {B, S, C}) ->
-  [ A ! {p2a, self(), {B, S, C}} || A <- Acceptors],
   receive
     {p2b, Acc, Bnum} ->
       if B == Bnum ->
