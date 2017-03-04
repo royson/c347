@@ -10,7 +10,7 @@ start(Acceptors, Replicas) ->
 next(Acceptors, Replicas, {Bnum, Bself}, Active, Proposals) ->
   receive
     {propose, S, C} ->
-      case lists:member({S, C}, Proposals) of
+      case lists:member(S, [ Sp || {Sp , _}<-Proposals ]) of
         false -> Proposals2 = Proposals ++ [{S, C}],
           if Active ->
             spawn(commander, start, [self(), Acceptors, Replicas, {{Bnum, Bself}, S, C}]);
@@ -24,7 +24,7 @@ next(Acceptors, Replicas, {Bnum, Bself}, Active, Proposals) ->
       %PVals = [{B,S,C}]
       %Update Proposals
       {{_, _}, Shigh, Chigh} = lists:max(PVals),
-      Proposals2 = [{Shigh, Chigh}] ++ [P || P <- Proposals, P /= {Shigh, Chigh}],
+      Proposals2 = [{Shigh, Chigh}] ++ [ {Sp, Cp} || {Sp, Cp} <- Proposals, Sp /= Shigh ],
       [spawn(commander, start, [self(), Acceptors, Replicas, {{Bnum, Bself}, S, C}]) || 
       {S, C} <- Proposals2],
       Active2 = true,
