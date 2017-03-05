@@ -14,7 +14,7 @@ start(N_accounts, End_after) ->
 
   {Balances2, Transactions} = next(Balances, 0),
 
-  Output = [ io_lib:format("~3w | ~6w | ~p ~n", 
+  Output = [ io_lib:format("~3w | ~9w | ~p ~n", 
                       [N, maps:get(N, Balances2), self()])
              || N <- lists:seq(1, N_accounts) ],
   io:format("Transactions ~p~n~s~n", [Transactions, lists:flatten(Output)]),

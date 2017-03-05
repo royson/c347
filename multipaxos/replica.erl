@@ -25,7 +25,8 @@ next(Leaders, State, SlotIn, SlotOut, Reqs, Proposals, Decisions, Database) ->
       Decisions2 = sets:to_list(DecisionsSet),
       ReqsList = sets:to_list(Reqs),
       ProposalsList = sets:to_list(Proposals),
-      {Proposals2, Reqs2, SlotOut2, State2} = decide (Decisions2, ProposalsList, ReqsList, SlotOut, State, Decisions2, Database),
+      DecisionsList = [ {SOc, C2} || {SOc, C2} <- Decisions2, SOc == SlotOut],
+      {Proposals2, Reqs2, SlotOut2, State2} = decide (Decisions2, ProposalsList, ReqsList, SlotOut, State, DecisionsList, Database),
       propose(Leaders, State2, SlotIn, SlotOut2, Reqs2, Proposals2, Decisions2, Database)
   end.
 
@@ -61,10 +62,10 @@ propose(Leaders, State, SlotIn, SlotOut, [C | T], Proposals, Decisions, Database
    
 decide([], Proposals, Reqs, SlotOut, State, _, _) ->
   {Proposals, Reqs, SlotOut, State};
-decide([{SO, C2} | T], Proposals, Reqs, SlotOut, State, Decisions, Database) ->
-  case isMemberOf(SO, Proposals) of
+decide([{_, C2} | T], Proposals, Reqs, SlotOut, State, Decisions, Database) ->
+  case isMemberOf(SlotOut, Proposals) of
     true ->
-      {SO2, C3} = lists:last([ {_SO2, _C3} || {_SO2, _C3} <- Proposals, SO == _SO2 ]),
+      {SO2, C3} = lists:last([ {_SO2, _C3} || {_SO2, _C3} <- Proposals, SlotOut == _SO2 ]),
       %Proposals2 = Proposals -- [{SO2, C3}],
       ProposalsSet = sets:from_list(Proposals),
       ProposalsT = sets:del_element({SO2, C3}, ProposalsSet),
@@ -83,7 +84,7 @@ decide([{SO, C2} | T], Proposals, Reqs, SlotOut, State, Decisions, Database) ->
   end.
   
 perform({K, Cid, Op}, T, Proposals, Reqs, SlotOut, State, Decisions, Database) ->
-  Cond = [ {S, {K2, Cid2, Op2}} || {S,{K2, Cid2, Op2}} <- Decisions, S < SlotOut, K == K2, Cid == Cid2, Op == Op2],
+  Cond = [ {S, {K2, Cid2, Op2}} || {S, {K2, Cid2, Op2}} <- Decisions, S < SlotOut, K == K2, Cid == Cid2, Op == Op2],
   if Cond /= [] ->
     SlotOut2 = SlotOut + 1,
     decide(T, Proposals, Reqs, SlotOut2, State, Decisions, Database);
@@ -91,12 +92,11 @@ perform({K, Cid, Op}, T, Proposals, Reqs, SlotOut, State, Decisions, Database) -
     if erlang:element(1, Op) == move ->
       State2 = State + 1,
       SlotOut2 = SlotOut + 1,
-      io:format("Decisions: ~p~n", [Decisions]),
-      io:format("Executing.. Op: ~p~n", [Op]),
       Database ! {execute, Op},
       K ! {response, Cid, ok},
       decide(T, Proposals, Reqs, SlotOut2, State2, Decisions, Database);
     true ->
+      %Won't happen. For scalability
       decide(T, Proposals, Reqs, SlotOut, State, Decisions, Database)
     end
   end.

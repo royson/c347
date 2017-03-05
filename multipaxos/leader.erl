@@ -27,8 +27,11 @@ next(Acceptors, Replicas, {Bnum, Bself}, Active, Proposals) ->
       %PVals = [{B,S,C}]
       %Update Proposals
       if PVals /= [] ->
-        {{_, _}, Shigh, Chigh} = lists:max(PVals),
-        Proposals2 = [{Shigh, Chigh}] ++ [ {Sp, Cp} || {Sp, Cp} <- Proposals, Sp /= Shigh ];
+        Slots = [ Slot || {{_, _}, Slot, _} <- PVals ],
+        SlotMax = pmax(Slots, PVals, []),
+
+        ProposalsSub = update(SlotMax, Proposals),
+        Proposals2 = ProposalsSub ++ SlotMax;
       true ->
         Proposals2 = Proposals
       end,
@@ -46,3 +49,19 @@ next(Acceptors, Replicas, {Bnum, Bself}, Active, Proposals) ->
         next(Acceptors, Replicas, {Bnum, Bself}, Active, Proposals)
       end
   end.
+
+pmax([], _, SlotMax) ->
+  SlotMax;
+pmax([S | T], PVals, SlotsMax) ->
+  PValsSub = [ {{Bip, Bis}, St, Ct} || {{Bip, Bis}, St, Ct} <- PVals, St == S ],
+  {{_,_}, Shigh, Chigh} = lists:max(PValsSub),
+  SlotsMax2 = SlotsMax ++ [{Shigh, Chigh}],
+  pmax(T, PVals, SlotsMax2).
+
+update([], Proposals) ->
+  Proposals;
+update([{S, _} | T], Proposals) ->
+  Proposals2 = [ {Sp, Cp} || {Sp, Cp} <- Proposals, Sp /= S],
+  update(T, Proposals2).
+
+
