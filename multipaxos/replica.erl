@@ -61,9 +61,8 @@ decide([{SO, C2} | T], Proposals, Reqs, SlotOut, State, Decisions, Database) ->
       perform(C2, T, Proposals, Reqs, SlotOut, State, Decisions, Database)
   end.
   
-
 perform({K, Cid, Op}, T, Proposals, Reqs, SlotOut, State, Decisions, Database) ->
-  Cond = [ {S, {K2, Cid2, Op2}} || {S,{K2, Cid2, Op2}} <- Decisions, S < SlotOut, K == K2, Cid == Cid2, Op = Op2],
+  Cond = [ {S, {K2, Cid2, Op2}} || {S,{K2, Cid2, Op2}} <- Decisions, S < SlotOut, K == K2, Cid == Cid2, Op == Op2],
   if Cond /= [] ->
     SlotOut2 = SlotOut + 1,
     decide(T, Proposals, Reqs, SlotOut2, State, Decisions, Database);
@@ -71,6 +70,8 @@ perform({K, Cid, Op}, T, Proposals, Reqs, SlotOut, State, Decisions, Database) -
     if erlang:element(1, Op) == move ->
       State2 = State + 1,
       SlotOut2 = SlotOut + 1,
+      io:format("Decisions: ~p~n", [Decisions]),
+      io:format("Executing.. Op: ~p~n", [Op]),
       Database ! {execute, Op},
       K ! {response, Cid, ok},
       decide(T, Proposals, Reqs, SlotOut2, State2, Decisions, Database);

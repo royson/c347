@@ -23,7 +23,7 @@ start() ->
 
   [ Replica ! {bind, Leaders} || Replica <- Replicas ],
   [ Leader  ! {bind, Acceptors, Replicas} || Leader <- Leaders ],
-
+  
   _Clients = [ spawn(client, start, 
                [Replicas, N_accounts, Max_amount, End_after])
     || _ <- lists:seq(1, N_clients) ],
